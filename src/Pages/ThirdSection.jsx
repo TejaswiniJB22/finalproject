@@ -1,26 +1,30 @@
-import React, { useRef } from "react";
-import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
+import React, { useRef, useEffect, useState } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 export default function ThirdSection() {
   const { scrollYProgress } = useScroll();
   const pathRef = useRef(null);
+  const [points, setPoints] = useState([]);
 
-  // These are the relative progress points (20%, 45%, etc.)
-  const progressPoints = [0.2, 0.45, 0.7, 0.95];
+  const pathLength = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const opacities = [
+    useTransform(scrollYProgress, [0.05, 0.15], [0, 1]),
+    useTransform(scrollYProgress, [0.25, 0.35], [0, 1]),
+    useTransform(scrollYProgress, [0.5, 0.6], [0, 1]),
+    useTransform(scrollYProgress, [0.7, 0.8], [0, 1]),
+  ];
 
-  // State for star positions
-  const [points, setPoints] = React.useState([]);
-
-  // Update star positions whenever scrollYProgress changes
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+  useEffect(() => {
     if (pathRef.current) {
       const len = pathRef.current.getTotalLength();
-      const newPoints = progressPoints.map((p) =>
-        pathRef.current.getPointAtLength(len * p * latest)
-      );
-      setPoints(newPoints);
+      setPoints([
+        pathRef.current.getPointAtLength(len * 0.2),
+        pathRef.current.getPointAtLength(len * 0.45),
+        pathRef.current.getPointAtLength(len * 0.7),
+        pathRef.current.getPointAtLength(len * 0.95),
+      ]);
     }
-  });
+  }, []);
 
   return (
     <section
@@ -40,23 +44,24 @@ export default function ThirdSection() {
           left: 0,
         }}
       >
-        {/* Path itself */}
         <motion.path
-          ref={pathRef}
-          d="
-            M 0 0
-            C 400 400, 700 500, 450 750
-            C 250 950, 800 1200, 1000 1350
-            C 1150 1550, 850 1750, 600 1900
-            C 400 2050, 300 2150, 500 2350
-          "
-          stroke="black"
-          strokeWidth="6"
-          fill="none"
-          strokeDasharray="10 20"
-          strokeLinecap="round"
-        />
-
+  ref={pathRef}
+  d="
+    M 0 0
+    C 400 400, 700 500, 450 750
+    C 250 950, 800 1200, 1000 1350
+    C 1150 1550, 850 1750, 600 1900
+    C 400 2050, 300 2150, 500 2350
+  "
+  stroke="black"
+  strokeWidth="6"
+  fill="none"
+  strokeDasharray="10 20"  
+  strokeLinecap="round"     
+  style={{
+    strokeDashoffset: useTransform(scrollYProgress, [0, 1], [1000, 0]),
+  }}
+/>
         <defs>
           <radialGradient id="glow" r="50%" cx="50%" cy="50%">
             <stop offset="0%" stopColor="purple" stopOpacity="1" />
@@ -69,41 +74,42 @@ export default function ThirdSection() {
             />
           </symbol>
         </defs>
-
-        {/* Moving stars */}
-        {points.map((p, i) => (
-          <g key={i} transform={`translate(${p.x}, ${p.y})`}>
-            <motion.use
-              href="#star"
-              width="40"
-              height="40"
-              x="-20"
-              y="-20"
-              animate={{ opacity: [0.4, 1, 0.4] }}
-              transition={{ duration: 1.2, repeat: Infinity }}
-            />
-            <text
-              x="70"
-              y="0"
-              fontSize="110"
-              fontFamily="serif"
-              fill="black"
-            >
-              {["1,034", "2", "54", "25"][i]}
-            </text>
-            <text
-              x="70"
-              y="40"
-              fontSize="20"
-              fontFamily="sans-serif"
-              fill="black"
-            >
-              Sample Data about Sample Things
-            </text>
-          </g>
-        ))}
+        {points.length > 0 &&
+          points.map((p, i) => (
+            <g key={i} transform={`translate(${p.x}, ${p.y})`}>
+              <motion.use
+                href="#star"
+                width="40"
+                height="40"
+                x="-20"
+                y="-20"
+                style={{ opacity: opacities[i] }}
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 1.2, repeat: Infinity }}
+              />
+              <motion.text
+                style={{ opacity: opacities[i] }}
+                x="70"
+                y="0"
+                fontSize="110"
+                fontFamily="serif"
+                fill="black"
+              >
+                {["1,034", "2", "54", "25"][i]}
+              </motion.text>
+              <motion.text
+                style={{ opacity: opacities[i] }}
+                x="70"
+                y="40"
+                fontSize="20"
+                fontFamily="sans-serif"
+                fill="black"
+              >
+                Sample Data about Sample Things
+              </motion.text>
+            </g>
+          ))}
       </svg>
     </section>
   );
 }
-
