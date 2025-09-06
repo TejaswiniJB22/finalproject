@@ -6,7 +6,9 @@ export default function ThirdSection() {
   const pathRef = useRef(null);
   const [points, setPoints] = useState([]);
 
-  const pathLength = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  // Make dots move with scroll
+  const dashOffset = useTransform(scrollYProgress, [0, 1], [0, 1000]);
+
   const opacities = [
     useTransform(scrollYProgress, [0.05, 0.15], [0, 1]),
     useTransform(scrollYProgress, [0.25, 0.35], [0, 1]),
@@ -44,24 +46,26 @@ export default function ThirdSection() {
           left: 0,
         }}
       >
+        {/* Dotted path */}
         <motion.path
-  ref={pathRef}
-  d="
-    M 0 0
-    C 400 400, 700 500, 450 750
-    C 250 950, 800 1200, 1000 1350
-    C 1150 1550, 850 1750, 600 1900
-    C 400 2050, 300 2150, 500 2350
-  "
-  stroke="black"
-  strokeWidth="6"
-  fill="none"
-  strokeDasharray="10 20"  
-  strokeLinecap="round"     
-  style={{
-    strokeDashoffset: useTransform(scrollYProgress, [0, 1], [1000, 0]),
-  }}
-/>
+          ref={pathRef}
+          d="
+            M 0 0
+            C 400 400, 700 500, 450 750
+            C 250 950, 800 1200, 1000 1350
+            C 1150 1550, 850 1750, 600 1900
+            C 400 2050, 300 2150, 500 2350
+          "
+          stroke="black"
+          strokeWidth="6"
+          fill="none"
+          strokeDasharray="10 20"
+          strokeLinecap="round"
+          style={{
+            strokeDashoffset: dashOffset, // makes dots scroll
+          }}
+        />
+
         <defs>
           <radialGradient id="glow" r="50%" cx="50%" cy="50%">
             <stop offset="0%" stopColor="purple" stopOpacity="1" />
@@ -74,6 +78,8 @@ export default function ThirdSection() {
             />
           </symbol>
         </defs>
+
+        {/* Stars + text fixed */}
         {points.length > 0 &&
           points.map((p, i) => (
             <g key={i} transform={`translate(${p.x}, ${p.y})`}>
